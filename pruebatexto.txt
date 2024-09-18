@@ -1,0 +1,9 @@
+#Declaración de variables
+
+x = 10;
+y = 3;
+z = 8;
+
+#Calcula
+
+a = x + y * z
