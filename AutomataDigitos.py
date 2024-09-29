@@ -18,7 +18,7 @@ class AutomataDigitos:
 
 automata = AutomataDigitos()
 
-cadena = "3"
+cadena = "s"
 if automata.procesarcadena(cadena):
     print("Cadena aceptada")
 else:

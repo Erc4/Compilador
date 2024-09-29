@@ -23,7 +23,7 @@ class AutomataIdentificador:
 automata = AutomataIdentificador()
 
 # Prueba con identificadores válidos e inválidos
-cadenas = ["_variable", "asda", "juan_123", "juan123_"]
+cadenas = ["_variable", "asda", "juan_123", "juan123_",]
 for cadena in cadenas:
     if automata.procesarcadena(cadena):
         print(f"Cadena '{cadena}' aceptada")
