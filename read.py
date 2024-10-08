@@ -3,6 +3,6 @@ _sumas = 3;
 {
 
 }
-
+cagada = 24;
 si x != == y entonces escribir hola
 hola = 5+   3;
