@@ -1,5 +1,35 @@
 import re
 
+class Token:
+    def __init__(self, lexema, col, ren, valor, tipo):
+        self.lexema = lexema
+        self.col = col
+        self.ren = ren
+        self.valor = valor
+        self.tipo = tipo
+
+    def __repr__(self):
+        return f"Token({self.lexema}, {self.col}, {self.ren}, {self.valor}, {self.tipo})"
+
+class Pila:
+    def __init__(self):
+        self.items = []
+
+    def push(self, item):
+        self.items.append(item)
+
+    def pop(self):
+        return self.items.pop() if not self.empty() else None
+
+    def empty(self):
+        return len(self.items) == 0
+
+    #def mostrar_pila(self):
+    #   print("Pila actual (desde la base hasta el tope):")
+    #    for item in reversed(self.items):
+    #        print(item)
+
+# Autómata para reconocer identificadores
 class AutomataIdentificador:
     def __init__(self):
         self.estado = 0
@@ -20,7 +50,7 @@ class AutomataIdentificador:
                     return False  # Si encuentra algo distinto a letras, dígitos o '_', no es válido
         return self.estado == 1  # La cadena es aceptada si termina en el estado de aceptación
 
-
+# Autómata para reconocer números
 class AutomataNumerico:
     def __init__(self):
         self.estado = 0
@@ -46,14 +76,13 @@ class AutomataNumerico:
                     return False  # Si no hay dígitos después del punto, es inválido
         return self.estado == 1 or self.estado == 2  # Se acepta tanto el entero como el decimal
 
-
+# Autómata para reconocer símbolos especiales
 class AutomataSimbolo:
     def __init__(self, simbolos_especiales):
         self.simbolos_especiales = simbolos_especiales
 
     def procesarcadena(self, cadena):
         return cadena in self.simbolos_especiales
-
 
 # Definiciones de operadores, tipos de datos, símbolos especiales y palabras reservadas
 operadoresAritmeticos = {
@@ -87,10 +116,9 @@ a = file.read()
 file.close()
 
 program = a.split("\n")
-token_table = []
+pila_tokens = Pila() 
 id_counter = 1
 
-# Instancias de los autómatas
 automata_identificador = AutomataIdentificador()
 automata_numerico = AutomataNumerico()
 automata_simbolo = AutomataSimbolo(simbolos_especiales)
@@ -106,42 +134,38 @@ for line_num, line in enumerate(program, start=1):
         tipo = None
         valor = '-'
 
-        # Verificar si es una palabra reservada
         if token in palabras_reservadas:
             tipo = "PALABRA_RESERVADA"
 
-        # Verificar si es un operador
         elif token in operadoresAritmeticos:
             tipo = "OPERADORES_ARIT"
         
         elif token in operadoresRelacionales:
             tipo = "OPERADORES_REL"
 
-        # Verificar si es un símbolo especial
         elif automata_simbolo.procesarcadena(token):
             tipo = "SIMBOLO_ESPECIAL"
 
-        # Verificar si es un número (entero o decimal)
         elif automata_numerico.procesarcadena(token):
             tipo = "NUMERICO"
             valor = token
 
-        # Verificar si es un identificador
         elif automata_identificador.procesarcadena(token):
             tipo = "ID"
 
-        # Si no se encontró un tipo, se clasifica como desconocido
         if tipo is None:
             tipo = "DESCONOCIDO"
 
-        # Agregar el token a la tabla
-        token_table.append([id_counter, lexema, tipo, valor, line_num, col])
+        nuevo_token = Token(lexema, col, line_num, valor, tipo)
+        pila_tokens.push(nuevo_token)
+        
         id_counter += 1
+        col += len(token) + 1 
 
-        # Actualizar la columna
-        col += len(token) + 1  # Se asume que los tokens están separados por un espacio
+#pila_tokens.mostrar_pila()
 
-# Imprimir la tabla de tokens
-print(f"{'ID':<5} {'LEXEMA':<10} {'TIPO':<20} {'VALOR':<10} {'LINEA':<10} {'COLUMNA':<10}")
-for row in token_table:
-    print(f"{row[0]:<5} {row[1]:<10} {row[2]:<20} {row[3]:<10} {row[4]:<10} {row[5]:<10}")
+print("\nTabla de tokens (desapilando de la pila):")
+print(f"{'LEXEMA':<10} {'COLUMNA':<10} {'RENGLON':<10} {'VALOR':<10} {'TIPO':<20}")
+while not pila_tokens.empty():
+    token = pila_tokens.pop()
+    print(f"{token.lexema:<10} {token.col:<10} {token.ren:<10} {token.valor:<10} {token.tipo:<20}")
