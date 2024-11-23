@@ -11,14 +11,14 @@ class AutomataIdentificador:
 
         for caracter in cadena:
             if self.estado == 0:  # q0 - El primer carácter debe ser una letra
-                if caracter.isalpha():  # Verifica si es una letra
-                    self.estado = 1  # Pasa al estado de aceptación
+                if caracter.isalpha():
+                    self.estado = 1
                 else:
-                    return False  # Si no es letra, no es válido
+                    return False
             elif self.estado == 1:  # q1 - Los caracteres restantes pueden ser letras, dígitos o '_'
                 if not (caracter.isalnum() or caracter == '_'):
-                    return False  # Si encuentra algo distinto a letras, dígitos o '_', no es válido
-        return self.estado == 1  # La cadena es aceptada si termina en el estado de aceptación
+                    return False
+        return self.estado == 1
 
 
 class AutomataNumerico:
@@ -33,18 +33,18 @@ class AutomataNumerico:
         for caracter in cadena:
             if self.estado == 0:  # q0 - El primer carácter debe ser un dígito
                 if caracter.isdigit():
-                    self.estado = 1  # Pasa al estado q1 (entero)
+                    self.estado = 1
                 else:
                     return False
             elif self.estado == 1:  # q1 - Si encuentra un punto, pasa al estado decimal
                 if caracter == '.':
-                    self.estado = 2  # q2 - En el estado decimal
-                elif not caracter.isdigit():  # Si no es dígito ni punto, es inválido
+                    self.estado = 2  # Estado decimal
+                elif not caracter.isdigit():
                     return False
             elif self.estado == 2:  # q2 - Después del punto, debe haber dígitos
                 if not caracter.isdigit():
-                    return False  # Si no hay dígitos después del punto, es inválido
-        return self.estado == 1 or self.estado == 2  # Se acepta tanto el entero como el decimal
+                    return False
+        return self.estado == 1 or self.estado == 2
 
 
 class AutomataSimbolo:
@@ -55,93 +55,48 @@ class AutomataSimbolo:
         return cadena in self.simbolos_especiales
 
 
-# Definiciones de operadores, tipos de datos, símbolos especiales y palabras reservadas
-operadoresAritmeticos = {
-    '=': 'ASIGNACION',
-    '+': 'SUMA',
-    '-': 'RESTA',
-    '*': 'MULTIPLICACION',
-    '/': 'DIVISION'
-}
+class AnalizadorLexico:
+    def __init__(self, codigo_fuente):
+        self.codigo_fuente = codigo_fuente
+        self.token_table = []
+        self.id_counter = 1
+        self.operadoresAritmeticos = {'=': 'ASIGNACION', '+': 'SUMA', '-': 'RESTA', '*': 'MULTIPLICACION', '/': 'DIVISION'}
+        self.operadoresRelacionales = {'!=': 'DESIGUALDAD', '==': 'IGUALDAD', '<': 'MENORQUE', '>': 'MAYORQUE', '<=': 'MENOROIGUAL', '>=': 'MAYOROIGUAL'}
+        self.simbolos_especiales = {"(": "parentesisa", ")": "parentesisc", "[": "corchetea", "]": "corchetec", "{": "llavea", "}": "llavec", ":": "dospuntos", ";": "puntoycoma"}
+        self.palabras_reservadas = ["inicio", "fin", "si", "entonces", "si no", "funcion", "escribir", "mientras", "repetir", "para", "caso", "var", "const", "entero", "decimal", "booleano", "nulo", "verdadero", "falso", "cadena", "arreglo", "hacer", "flotante"]
+        self.automata_identificador = AutomataIdentificador()
+        self.automata_numerico = AutomataNumerico()
+        self.automata_simbolo = AutomataSimbolo(self.simbolos_especiales)
 
-operadoresRelacionales = {
-    '!=': 'DESIGUALDAD',
-    '==': 'IGUALDAD',
-    '<': 'MENORQUE',
-    '>': 'MAYORQUE',
-    '<=': 'MENOROIGUAL',
-    '>=': 'MAYOROIGUAL'
-}
+    def analizar(self):
+        program = self.codigo_fuente.split("\n")
+        for line_num, line in enumerate(program, start=1):
+            tokens = re.findall(r'!=|==|<=|>=|[<>]|[=+\-*/]|\d+\.\d+|\d+|\w+|[^\s\w]', line)
+            col = 1
 
-simbolos_especiales = {"(":"parentesisa", ")":"parentesisc", "[":"corchetea", "]":"corchetec", "{":"llavea", "}":"llavec" ,":":"dospuntos", ";":"puntoycoma"}
+            for token in tokens:
+                lexema = token
+                tipo = None
+                valor = '-'
 
-palabras_reservadas = [
-    "inicio", "fin", "si", "entonces", "si no", "funcion", "escribir", "mientras",
-    "repetir", "para", "caso", "var", "const", "entero", "decimal", "booleano",
-    "nulo", "verdadero", "falso", "cadena", "arreglo", "hacer", "flotante"
-]
+                if token in self.palabras_reservadas:
+                    tipo = "PALABRA_RESERVADA"
+                elif token in self.operadoresAritmeticos:
+                    tipo = "OPERADORES_ARIT"
+                elif token in self.operadoresRelacionales:
+                    tipo = "OPERADORES_REL"
+                elif self.automata_simbolo.procesarcadena(token):
+                    tipo = "SIMBOLO_ESPECIAL"
+                elif self.automata_numerico.procesarcadena(token):
+                    tipo = "NUMERICO"
+                    valor = token
+                elif self.automata_identificador.procesarcadena(token):
+                    tipo = "ID"
+                if tipo is None:
+                    tipo = "DESCONOCIDO"
 
-# Lectura del archivo
-file = open("read.py")
-a = file.read()
-file.close()
+                self.token_table.append([self.id_counter, lexema, tipo, valor, line_num, col])
+                self.id_counter += 1
+                col += len(token) + 1
 
-program = a.split("\n")
-token_table = []
-id_counter = 1
-
-# Instancias de los autómatas
-automata_identificador = AutomataIdentificador()
-automata_numerico = AutomataNumerico()
-automata_simbolo = AutomataSimbolo(simbolos_especiales)
-
-# Procesamiento de cada línea
-for line_num, line in enumerate(program, start=1):
-    # Ajustar la expresión regular para manejar operadores relacionales y otros tokens
-    tokens = re.findall(r'!=|==|<=|>=|[<>]|[=+\-*/]|\d+\.\d+|\d+|\w+|[^\s\w]', line)  # Detecta números decimales, operadores y demás
-    col = 1
-
-    for token in tokens:
-        lexema = token
-        tipo = None
-        valor = '-'
-
-        # Verificar si es una palabra reservada
-        if token in palabras_reservadas:
-            tipo = "PALABRA_RESERVADA"
-
-        # Verificar si es un operador
-        elif token in operadoresAritmeticos:
-            tipo = "OPERADORES_ARIT"
-        
-        elif token in operadoresRelacionales:
-            tipo = "OPERADORES_REL"
-
-        # Verificar si es un símbolo especial
-        elif automata_simbolo.procesarcadena(token):
-            tipo = "SIMBOLO_ESPECIAL"
-
-        # Verificar si es un número (entero o decimal)
-        elif automata_numerico.procesarcadena(token):
-            tipo = "NUMERICO"
-            valor = token
-
-        # Verificar si es un identificador
-        elif automata_identificador.procesarcadena(token):
-            tipo = "ID"
-
-        # Si no se encontró un tipo, se clasifica como desconocido
-        if tipo is None:
-            tipo = "DESCONOCIDO"
-
-        # Agregar el token a la tabla
-        token_table.append([id_counter, lexema, tipo, valor, line_num, col])
-        id_counter += 1
-
-        # Actualizar la columna
-        col += len(token) + 1  # Se asume que los tokens están separados por un espacio
-
-# Imprimir la tabla de tokens
-print(f"{'ID':<5} {'LEXEMA':<10} {'TIPO':<20} {'VALOR':<10} {'LINEA':<10} {'COLUMNA':<10}")
-for row in token_table:
-    print(f"{row[0]:<5} {row[1]:<10} {row[2]:<20} {row[3]:<10} {row[4]:<10} {row[5]:<10}")
+        return self.token_table

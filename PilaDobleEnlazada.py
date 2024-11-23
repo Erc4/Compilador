@@ -1,57 +1,44 @@
 class Nodo:
-    def __init__(self, valor):
-        self.valor = valor
+    def __init__(self, dato):
+        self.dato = dato
         self.siguiente = None
         self.anterior = None
 
 class PilaDobleEnlazada:
     def __init__(self):
-        self.cabeza = None
-        self.cola = None
+        self.primero = None
+        self.ultimo = None
 
-    def esta_vacia(self):
-        return self.cabeza is None
-
-    def apilar(self, valor):
-        nuevo_nodo = Nodo(valor)
-        if self.esta_vacia():
-            self.cabeza = self.cola = nuevo_nodo
+    def push(self, dato):
+        nuevo = Nodo(dato)
+        if not self.primero:  # Si la pila está vacía
+            self.primero = self.ultimo = nuevo
         else:
-            nuevo_nodo.anterior = self.cola
-            self.cola.siguiente = nuevo_nodo
-            self.cola = nuevo_nodo
+            self.ultimo.siguiente = nuevo
+            nuevo.anterior = self.ultimo
+            self.ultimo = nuevo
 
-    def desapilar(self):
-        if self.esta_vacia():
-            raise IndexError("La pila está vacía")
-        valor = self.cola.valor
-        if self.cabeza == self.cola:
-            self.cabeza = self.cola = None
+    def pop(self):
+        if not self.ultimo:  # Si la pila está vacía
+            return None
+        dato = self.ultimo.dato
+        if self.ultimo == self.primero:  # Si solo hay un elemento
+            self.primero = self.ultimo = None
         else:
-            self.cola = self.cola.anterior
-            self.cola.siguiente = None
-        return valor
+            self.ultimo = self.ultimo.anterior
+            self.ultimo.siguiente = None
+        return dato
 
-    def obtener_ultimo(self):
-        if self.esta_vacia():
-            raise IndexError("La pila está vacía")
-        return self.cola.valor
+    def peek(self):
+        return self.ultimo.dato if self.ultimo else None
 
-    def mostrar(self):
-        actual = self.cabeza
+    def is_empty(self):
+        return self.primero is None
+
+    def __str__(self):
+        elementos = []
+        actual = self.primero
         while actual:
-            print(actual.valor, end=' ')
+            elementos.append(str(actual.dato))
             actual = actual.siguiente
-        print()
-
-# Uso de la pila doblemente enlazada
-pila = PilaDobleEnlazada()
-pila.apilar('token1')
-pila.apilar('token2')
-pila.apilar('token3')
-pila.mostrar()  # Imprimirá: token1 token2 token3
-print("Desapilar:", pila.desapilar())  # Imprimirá: token3
-pila.mostrar()  # Imprimirá: token1 token2
-
-
-
+        return " <- ".join(elementos)
