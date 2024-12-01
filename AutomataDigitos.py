@@ -1,3 +1,4 @@
+#AutomataDigitos.py
 class AutomataDigitos:
     def __init__(self):
         self.estado = 0

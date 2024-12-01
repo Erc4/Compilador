@@ -1,4 +1,19 @@
-x=10;
-y=3;
-z=8;
-a=x+y*z;
+inicio
+x = 10;
+y = 5;
+si x > y entonces {
+z = x + y;
+escribir(z);
+} si no {
+z = x - y;
+escribir(z);
+}
+mientras x > 0 {
+x = x - 1;
+escribir(x);
+}
+leer(dato);
+para (i = 0; i < 5; i = i + 1) {
+escribir(i);
+}
+fin

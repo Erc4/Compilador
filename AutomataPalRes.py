@@ -1,3 +1,4 @@
+#AutomataPasRes
 class AutomataPalRes:
     def __init__(self,lista_palres):
         self.lista_palres = lista_palres

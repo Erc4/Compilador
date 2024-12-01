@@ -1,10 +1,29 @@
-#Declaración de variables
-
-x = 10;
-y = 3;
-z = 8;
-a = 80;
-
-#Calcula
-
-a = x + y * z
+# prueba.txt
+inicio
+    # Declaración de variables
+    x = 10;
+    y = 5;
+    
+    # Estructura condicional
+    si x > y entonces {
+        z = x + y;
+        escribir(z);
+    } si no {
+        z = x - y;
+        escribir(z);
+    }
+    
+    # Bucle mientras
+    mientras x > 0 {
+        x = x - 1;
+        escribir(x);
+    }
+    
+    # Lectura de datos
+    leer(dato);
+    
+    # Bucle para
+    para (i = 0; i < 5; i = i + 1) {
+        escribir(i);
+    }
+fin

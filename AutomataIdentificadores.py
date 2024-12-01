@@ -1,3 +1,4 @@
+#AutomataIdentificadoes.py
 class AutomataIdentificador:
     def __init__(self):
         self.estado = 0
